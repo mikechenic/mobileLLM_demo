@@ -1,0 +1,24 @@
+{
+  "name": "fs-list-directory",
+  "description": "List entries in a workspace directory",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "path": {
+        "type": "string",
+        "description": "Relative directory path to list"
+      },
+      "max_entries": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Maximum entries to return"
+      },
+      "show_hidden": {
+        "type": "boolean",
+        "description": "Include dotfiles"
+      }
+    },
+    "required": [],
+    "additionalProperties": false
+  }
+}

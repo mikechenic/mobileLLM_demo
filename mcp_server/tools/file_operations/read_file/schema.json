@@ -1,0 +1,20 @@
+{
+  "name": "fs-read-file",
+  "description": "Read a file relative to the workspace root with optional truncation",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "path": {
+        "type": "string",
+        "description": "Relative path to the file"
+      },
+      "max_bytes": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Optional maximum number of bytes to return"
+      }
+    },
+    "required": ["path"],
+    "additionalProperties": false
+  }
+}

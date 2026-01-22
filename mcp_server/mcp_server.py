@@ -32,13 +32,17 @@ tools_dir = Path(__file__).parent / "tools"
 
 def load_tools_from_directory(tools_directory: Path) -> Dict[str, Dict[str, Any]]:
     """
-    Dynamically discover and load tools from directory structure
+    Dynamically discover and load tools from directory structure (recursive)
     
     Expected structure:
     /tools/
+      /category/
+        /tool_name/
+          schema.json      (tool metadata and input schema)
+          handler.py       (handler function)
       /tool_name/
-        schema.json      (tool metadata and input schema)
-        handler.py       (handler function)
+        schema.json        (flat structure also supported)
+        handler.py
     """
     tools_map = {}
     
@@ -48,23 +52,35 @@ def load_tools_from_directory(tools_directory: Path) -> Dict[str, Dict[str, Any]
     
     logger.info(f"Scanning tools directory: {tools_directory}")
     
-    # Iterate through subdirectories in tools folder
-    for tool_folder in sorted(tools_directory.iterdir()):
-        if not tool_folder.is_dir() or tool_folder.name.startswith('_'):
-            continue
+    # Recursively find all directories containing schema.json and handler.py
+    def find_tool_folders(directory: Path) -> List[Path]:
+        """Recursively find all valid tool folders"""
+        tool_folders = []
         
+        for item in sorted(directory.iterdir()):
+            if not item.is_dir() or item.name.startswith('_'):
+                continue
+            
+            schema_file = item / "schema.json"
+            handler_file = item / "handler.py"
+            
+            # If this directory has both files, it's a tool
+            if schema_file.exists() and handler_file.exists():
+                tool_folders.append(item)
+            else:
+                # Otherwise, recurse into it
+                tool_folders.extend(find_tool_folders(item))
+        
+        return tool_folders
+    
+    # Find all tool folders
+    tool_folders = find_tool_folders(tools_directory)
+    
+    # Load each tool
+    for tool_folder in tool_folders:
         try:
             schema_file = tool_folder / "schema.json"
             handler_file = tool_folder / "handler.py"
-            
-            # Check if both required files exist
-            if not schema_file.exists():
-                logger.warning(f"Missing schema.json in {tool_folder.name}")
-                continue
-            
-            if not handler_file.exists():
-                logger.warning(f"Missing handler.py in {tool_folder.name}")
-                continue
             
             # Load schema
             with open(schema_file, 'r') as f:

@@ -6,24 +6,53 @@ The MCP server now uses dynamic tool discovery from the `/tools/` directory. Eac
 
 ```
 /tools/
-  /get_sum/
-    schema.json
-    handler.py
-  /get_product/
-    schema.json
-    handler.py
-  /calculate_average/
-    schema.json
-    handler.py
-  /your_new_tool/          ← Add new tools here
-    schema.json
-    handler.py
+  /calculations/
+    /calculate_average/
+      schema.json
+      handler.py
+    /get_product/
+      schema.json
+      handler.py
+    /get_sum/
+      schema.json
+      handler.py
+  /file_operations/
+    /append_file/
+      schema.json
+      handler.py
+    /delete_path/
+      schema.json
+      handler.py
+    /list_directory/
+      schema.json
+      handler.py
+    /read_file/
+      schema.json
+      handler.py
+    /run_command/
+      schema.json
+      handler.py
+    /write_file/
+      schema.json
+      handler.py
+    /safe_operations/           ← Nested categories supported
+      (future safe file ops)
+  /your_category/               ← Add new categories here
+    /your_new_tool/
+      schema.json
+      handler.py
 ```
 
 ## Creating a New Tool
 
 ### Step 1: Create Tool Folder
-Create a new subfolder in `/tools/` with a descriptive name (e.g., `/string_concatenate/`)
+Create a new subfolder under a category in `/tools/` (or create a new category folder).
+For example, create `/tools/file_operations/string_operation/` or `/tools/myfeature/my_tool/`
+
+**Supported structures:**
+- Flat: `/tools/tool_name/` (tools at root level)
+- Categorized: `/tools/category/tool_name/` (tools grouped by category)
+- Nested: `/tools/category/subcategory/tool_name/` (arbitrary nesting depth)
 
 ### Step 2: Create `schema.json`
 Define the tool's metadata and input schema:
@@ -239,9 +268,9 @@ def handler(x: float, y: float) -> str:
 
 ## Tool Auto-Discovery
 
-The server automatically discovers and loads tools on startup:
-1. Scans `/tools/` directory
-2. For each subfolder, loads `schema.json` and `handler.py`
+The server automatically discovers and loads tools on startup from any nesting level:
+1. Scans `/tools/` recursively (flat and hierarchical)
+2. Finds all folders containing both `schema.json` and `handler.py`
 3. Dynamically imports handler functions
 4. Registers all tools with the MCP server
-5. No need to edit code - just add folders!
+5. No need to edit code - just add folders at any depth!

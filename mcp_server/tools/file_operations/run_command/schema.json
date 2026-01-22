@@ -1,0 +1,29 @@
+{
+  "name": "fs-run-command",
+  "description": "Run a shell command within the workspace",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "command": {
+        "type": "string",
+        "description": "Command string to execute"
+      },
+      "cwd": {
+        "type": "string",
+        "description": "Relative working directory"
+      },
+      "timeout_seconds": {
+        "type": "integer",
+        "minimum": 1,
+        "description": "Timeout for the command"
+      },
+      "max_output": {
+        "type": "integer",
+        "minimum": 100,
+        "description": "Maximum characters returned for stdout/stderr"
+      }
+    },
+    "required": ["command"],
+    "additionalProperties": false
+  }
+}

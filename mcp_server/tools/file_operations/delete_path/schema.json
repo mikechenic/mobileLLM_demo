@@ -1,0 +1,19 @@
+{
+  "name": "fs-delete-path",
+  "description": "Delete a file or directory relative to the workspace root",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "path": {
+        "type": "string",
+        "description": "Relative path to delete"
+      },
+      "recursive": {
+        "type": "boolean",
+        "description": "Allow deleting non-empty directories"
+      }
+    },
+    "required": ["path"],
+    "additionalProperties": false
+  }
+}

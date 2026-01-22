@@ -1,0 +1,23 @@
+{
+  "name": "fs-append-file",
+  "description": "Append text to a file relative to the workspace root",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "path": {
+        "type": "string",
+        "description": "Relative path to the file to append"
+      },
+      "content": {
+        "type": "string",
+        "description": "UTF-8 content to append"
+      },
+      "create_parents": {
+        "type": "boolean",
+        "description": "Create parent directories if missing"
+      }
+    },
+    "required": ["path", "content"],
+    "additionalProperties": false
+  }
+}
