@@ -1,0 +1,164 @@
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%;
+    max-width: 600px;
+    margin: auto;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.messages {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+}
+
+.message {
+    margin: 10px 0;
+    padding: 12px;
+    border-radius: 8px;
+    max-width: 70%;
+    word-wrap: break-word;
+}
+
+.meta-block {
+    margin: 10px 0;
+    padding: 12px;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    color: #0b0c0d;
+}
+
+.sender-label {
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    opacity: 0.7;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.message-content {
+    line-height: 1.5;
+}
+
+.user {
+    background-color: #1d4ed8;
+    color: #ffffff;
+    margin-left: auto;
+    text-align: right;
+}
+
+.assistant {
+    background-color: #e8ecf5;
+    color: #1f2937;
+    margin-right: auto;
+}
+
+.system {
+    background-color: #ffe5e5;
+    border: 1px solid #ff9b9b;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.tool {
+    background-color: #e6f0ff;
+    border: 1px solid #8ab4ff;
+    font-family: monospace;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+}
+
+/* Tool message formatting */
+.tool-header {
+    margin-bottom: 10px;
+}
+
+.tool-name {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #0b5394;
+    font-family: 'Courier New', monospace;
+}
+
+.tool-separator {
+    height: 1px;
+    background-color: #8ab4ff;
+    margin: 8px 0;
+}
+
+.tool-section-label {
+    font-weight: bold;
+    color: #1a3d5c;
+    display: block;
+    margin: 8px 0 4px 0;
+    font-size: 0.95rem;
+}
+
+.tool-inputs {
+    margin-bottom: 10px;
+}
+
+.tool-input-field {
+    display: flex;
+    gap: 8px;
+    margin-left: 12px;
+    margin-bottom: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+}
+
+.field-name {
+    color: #0b5394;
+    font-weight: 600;
+}
+
+.field-value {
+    color: #2d3436;
+}
+
+.tool-output {
+    margin-top: 8px;
+}
+
+.tool-result-text {
+    margin-top: 4px;
+    color: #1a3d5c;
+    line-height: 1.5;
+    font-family: inherit;
+}
+
+.input-container {
+    display: flex;
+    padding: 10px;
+    background-color: #fff;
+}
+
+input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    margin-left: 10px;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}

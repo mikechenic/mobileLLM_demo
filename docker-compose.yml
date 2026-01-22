@@ -1,0 +1,58 @@
+# Commands:
+# Build and start all services
+# docker-compose up -d
+
+# View logs
+# docker-compose logs -f
+
+# Stop services
+# docker-compose down
+
+version: '3.8'
+
+services:
+  # MCP Server
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    container_name: mcp-server
+    ports:
+      - "3000:3000"  # If MCP server exposes HTTP
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+
+  # LLM Agent API
+  llm-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.llm
+    container_name: llm-api
+    ports:
+      - "8001:8001"
+    depends_on:
+      - mcp-server
+    environment:
+      - OPENAI_API_ENDPOINT=${OPENAI_API_ENDPOINT}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MCP_SERVER_HOST=mcp-server  # Service name from docker-compose
+      - MCP_SERVER_PORT=3000
+    restart: unless-stopped
+
+  # Frontend Gateway API
+  gateway-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: gateway-api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - llm-api
+    environment:
+      - LLM_SERVICE_URL=http://llm-api:8001
+    restart: unless-stopped
+
+volumes:
+  shared_data:

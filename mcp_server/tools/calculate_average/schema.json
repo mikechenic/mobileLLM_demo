@@ -1,0 +1,18 @@
+{
+  "name": "calculate-average",
+  "description": "Returns the average of multiple numbers",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "numbers": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "description": "List of numbers to average"
+      }
+    },
+    "required": ["numbers"],
+    "additionalProperties": false
+  }
+}

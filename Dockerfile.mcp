@@ -1,0 +1,27 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install Node.js for MCP server (if needed by your MCP tooling)
+RUN apt-get update && \
+    apt-get install -y nodejs npm && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install uv (resolver/installer)
+RUN pip install --no-cache-dir uv
+
+# Copy project metadata for dependency install
+COPY pyproject.toml uv.lock ./
+
+# Sync dependencies into a local venv
+RUN uv sync --frozen --no-dev --python /usr/local/bin/python
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Copy all application files
+COPY mcp_server/ .
+
+# Expose the HTTP port
+EXPOSE 3000
+
+# Run the application
+CMD ["python", "-m", "uvicorn", "mcp_api:app", "--host", "0.0.0.0", "--port", "3000"]

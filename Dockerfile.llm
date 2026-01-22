@@ -1,0 +1,25 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install uv (resolver/installer)
+RUN pip install --no-cache-dir uv
+
+# Copy project metadata for dependency install
+COPY pyproject.toml uv.lock ./
+
+# Sync dependencies into a local venv
+RUN uv sync --frozen --no-dev --python /usr/local/bin/python
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Copy application
+COPY llm_api.py .
+COPY mcp_manager.py .
+COPY config.yaml .
+COPY .env .
+
+# Expose port
+EXPOSE 8001
+
+# Run the application
+CMD ["python", "-m", "uvicorn", "llm_api:app", "--host", "0.0.0.0", "--port", "8001"]
