@@ -105,9 +105,9 @@ class MCPAgentAPI:
         # MCP config from config.yaml
         mcp_cfg = config.get('mcp', {})
         self.mcp_config = {
-            "type": mcp_cfg.get("transport_type", "stdio"),
-            "command": mcp_cfg.get("server_command", "npx"),
-            "args": mcp_cfg.get("server_args", ["-y", "@modelcontextprotocol/server-everything"]),
+            "transport_type": mcp_cfg.get("transport_type", "http"),
+            "server_command": mcp_cfg.get("server_command", "npx"),
+            "server_args": mcp_cfg.get("server_args", ["-y", "@modelcontextprotocol/server-everything"]),
             "base_url": mcp_cfg.get("base_url"),  # for HTTP
             "api_key": mcp_cfg.get("api_key"),     # for HTTP
             "use_sse": mcp_cfg.get("use_sse", False), # whether to use SSE (Server-Sent Events) for streaming
@@ -183,7 +183,7 @@ class MCPAgentAPI:
                 return lambda **kwargs: mcp_proxy.call_tool(tn, kwargs)
             
             # Convert JSON schema to Pydantic model for args_schema
-            args_schema_model = self._json_schema_to_pydantic(tool_input_schema)
+            args_schema_model = self._json_schema_to_pydantic(tool_input_schema) if tool_input_schema else None
             
             # Create tool with properly captured tool name
             langchain_tool = StructuredTool(
@@ -194,8 +194,8 @@ class MCPAgentAPI:
             )
             langchain_tools.append(langchain_tool)
 
-        logger.info(f"Loaded {len(langchain_tools)} tools from MCP")
-        logger.info(langchain_tools)
+        logger.info(f"Loaded {len(langchain_tools)} tools from MCP (lightweight mode)")
+        logger.info(f"Tools: {[(t.name, t.description, t.args_schema) for t in langchain_tools]}")
 
         # Create ReAct agent with tools
         self.agent = create_agent(
@@ -324,6 +324,7 @@ class MCPAgentAPI:
         This must be called from within the worker thread.
         """
         try:
+            logger.info(f"Initializing MCP manager from mcp config: {self.mcp_config}")
             self.mcp_manager = MCPServerManager.create_from_config(self.mcp_config)
             await self.mcp_manager.initialize()
             self.mcp_ready.set()
@@ -548,7 +549,7 @@ if __name__ == "__main__":
     server_config = config['llm']
     uvicorn.run(
         "llm_api:app",  # Import string instead of app object for reload
-        host=server_config['host'],
+        host='0.0.0.0',
         port=server_config['port'],
         reload=True,  # Auto-reload on code changes
         log_level="info"  # Verbose logging

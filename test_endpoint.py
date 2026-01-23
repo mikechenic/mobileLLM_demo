@@ -7,6 +7,7 @@ with open('config.yaml', 'r') as f:
 api = config['api']['host'] + ":" + str(config['api']['port'])
 chat_endpoint = api + config['api']['endpoints']['chat']
 health_endpoint = api + config['api']['endpoints']['health']
+llm_endpoint = config['llm']['host'] + ":" + str(config['llm']['port']) + config['llm']['endpoints']['chat']
 
 method = "POST"
 
@@ -38,7 +39,15 @@ async def test_mcp_endpoint():
 
     await mcp_manager.cleanup()
 
+def test_llm_api_endpoint():
+    url = "http://localhost:8001/chat"
+    payload = {"message": "Hello, LLM!"}
+    response = requests.post(url, json=payload)
+    assert response.status_code == 200
+    print("LLM API Endpoint Response:", response.text)
+
 if __name__ == "__main__":
     # test_chat_endpoint()
     # test_health_endpoint()
     asyncio.run(test_mcp_endpoint())
+    # test_llm_api_endpoint()

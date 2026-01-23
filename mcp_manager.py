@@ -53,6 +53,7 @@ class StdioTransport(MCPTransport):
     
     async def initialize(self) -> ClientSession:
         """Start MCP server as subprocess and connect via stdio"""
+        logger.info(f"Starting Stdio MCP server with command: {self.command} {' '.join(self.args)}")
         server_params = StdioServerParameters(
             command=self.command,
             args=self.args,
@@ -67,11 +68,14 @@ class StdioTransport(MCPTransport):
         
         await self.session.__aenter__()
         await self.session.initialize()
+
+        logger.info("Stdio MCP server initialized successfully")
         
         return self.session
     
     async def cleanup(self):
         """Cleanup stdio transport"""
+        logger.info("Cleaning up Stdio MCP transport")
         if self.session:
             await self.session.__aexit__(None, None, None)
         if self.stdio_context:
@@ -98,6 +102,7 @@ class HTTPTransport(MCPTransport):
     
     async def initialize(self):
         """Connect to MCP server via HTTP"""
+        logger.info(f"Connecting to HTTP MCP server at {self.base_url} (SSE: {self.use_sse})")
         headers = {}
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
@@ -112,10 +117,13 @@ class HTTPTransport(MCPTransport):
         self.session = HTTPMCPSession(self.client, use_sse=self.use_sse)
         await self.session.initialize()
         
+        logger.info("HTTP MCP server initialized successfully")
+
         return self.session
     
     async def cleanup(self):
         """Cleanup HTTP transport"""
+        logger.info("Cleaning up HTTP MCP transport")
         if self.session:
             await self.session.close()
         if self.client:
@@ -136,6 +144,7 @@ class HTTPMCPSession:
     
     async def initialize(self):
         """Initialize MCP protocol"""
+        logger.info("Initializing MCP session via HTTP")
         response = await self.client.post(
             "/messages",
             json={
@@ -153,7 +162,7 @@ class HTTPMCPSession:
             }
         )
         response.raise_for_status()
-        
+        logger.info("MCP session initialized via HTTP successfully")
         # Optionally open SSE connection for server events
         if self.use_sse:
             self.sse_stream = await self.client.stream("GET", "/sse")
@@ -166,6 +175,7 @@ class HTTPMCPSession:
     
     async def list_tools(self):
         """List available tools via HTTP"""
+        logger.info("Requesting list of available tools from MCP server")
         response = await self.client.post(
             "/messages",
             json={
@@ -210,6 +220,7 @@ class HTTPMCPSession:
     
     async def call_tool(self, tool_name: str, arguments: Dict[str, Any]):
         """Call a tool via HTTP"""
+        logger.info(f"Calling tool '{tool_name}' via HTTP with arguments: {arguments}")
         response = await self.client.post(
             "/messages",
             json={
@@ -240,6 +251,7 @@ class HTTPMCPSession:
     
     async def close(self):
         """Close the HTTP session and optional SSE connection"""
+        logger.info("Closing HTTP MCP session")
         if self.sse_stream:
             await self.sse_stream.__aexit__(None, None, None)
 
@@ -293,8 +305,9 @@ class MCPServerManager:
             "use_sse": false   # for http (optional, default: false)
         }
         """
-        transport_type = config.get("transport_type", "stdio")
-        
+        transport_type = config.get("transport_type", "http")
+        logger.info(f"Readed transport type from config: {transport_type}")
+
         if transport_type == "stdio":
             return cls.create_stdio(
                 command=config.get("server_command", "npx"),
@@ -302,7 +315,7 @@ class MCPServerManager:
             )
         elif transport_type == "http":
             return cls.create_http(
-                base_url=config["base_url"],
+                base_url=config["base_url"] if config["base_url"].startswith("http") else "http://" + config["base_url"],
                 api_key=config.get("api_key"),
                 use_sse=config.get("use_sse", False)
             )
@@ -316,16 +329,17 @@ class MCPServerManager:
     
     async def list_tools(self) -> List[Dict[str, str]]:
         """
-        List available tools
+        List available tools with summary info only (lightweight)
         
         Returns:
-            List of tools with name and description
+            List of tools with name and description only (no schema)
         """
         if not self.session:
             await self.initialize()
         
         tools_list = await self.session.list_tools()
         
+        # Cache full tool info for later use
         self._tools_cache = [{
             "name": tool.name,
             "title": getattr(tool, 'title', tool.name),
@@ -338,7 +352,35 @@ class MCPServerManager:
             for tool in tools_list.tools
         ]
         
-        return self._tools_cache
+        # Return lightweight summary
+        return [
+            {
+                "name": tool["name"],
+                "description": tool["description"],
+                "inputSchema": tool["inputSchema"]
+            }
+            for tool in self._tools_cache
+        ]
+    
+    async def get_tool_info(self, tool_name: str) -> Optional[Dict[str, Any]]:
+        """
+        Get full details for a specific tool
+        
+        Args:
+            tool_name: Name of the tool
+            
+        Returns:
+            Full tool info including schema, or None if tool not found
+        """
+        if not self._tools_cache:
+            await self.list_tools()
+        
+        for tool in self._tools_cache:
+            if tool["name"] == tool_name:
+                return tool
+        
+        logger.warning(f"Tool '{tool_name}' not found in cache")
+        return None
     
     async def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Any:
         """

@@ -1,15 +1,16 @@
 api:
-  host: localhost
+  host: localhost # for noncontainerized testing: localhost
   port: 8000
   endpoints:
     chat: /chat
     health: /health
 
 llm:
-  host: localhost
+  host: llm-api # for noncontainerized testing: localhost
   port: 8001
   endpoints:
     chat: /chat
+    health: /health
 
 agent:
   max_tool_calls: 5  # Maximum consecutive tool calls per message (prevents infinite loops)
@@ -18,9 +19,9 @@ mcp:
   transport_type: http  # or "stdio"
   # For STDIO:
   server_command: python
-  server_args: [mcp_server/mcp_server.py]
+  server_args: [mcp_server.py]
   # For HTTP:
   # Note: the server command and server args should be set on the MCP server side
-  base_url: http://localhost:3000
+  base_url: http://mcp-server:3000 # for noncontainerized testing: http://localhost:3000
   api_key: optional-key # Not implemented yet
   use_sse: false # Whether to use SSE (Server-Sent Events) for streaming, not implemented yet

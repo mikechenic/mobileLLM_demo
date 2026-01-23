@@ -17,6 +17,13 @@ const ChatInterface = () => {
 
     const handleSend = async () => {
         if (!input.trim()) return;
+        
+        // Ensure config is loaded before proceeding
+        if (!configLoaded) {
+            console.warn('Config not loaded yet, waiting...');
+            await loadConfig();
+            setConfigLoaded(true);
+        }
 
         // Show user message immediately
         addMessage(input, 'user');
@@ -25,10 +32,31 @@ const ChatInterface = () => {
 
         try {
             const currentConfig = getConfig();
-            const host = currentConfig.api.host.startsWith('http')
-                ? currentConfig.api.host
-                : 'http://' + currentConfig.api.host;
-            const apiUrl = `${host}:${currentConfig.api.port}${currentConfig.api.endpoints.chat}`;
+            if (!currentConfig || !currentConfig.api) {
+                throw new Error('Configuration not available');
+            }
+            console.log('Using config for API call:', currentConfig);
+            
+            // Construct the API URL properly
+            const host = currentConfig.api.host || 'localhost';
+            const port = currentConfig.api.port;
+            const endpoint = currentConfig.api.endpoints.chat;
+            
+            // Build URL: if exposed_host already has protocol, use it; otherwise add http://
+            let apiUrl;
+            if (host.startsWith('http://') || host.startsWith('https://')) {
+                // Host already has protocol, check if it has port
+                if (host.includes(':' + port)) {
+                    apiUrl = `${host}${endpoint}`;
+                } else {
+                    apiUrl = `${host}:${port}${endpoint}`;
+                }
+            } else {
+                // No protocol, add it
+                apiUrl = `http://${host}:${port}${endpoint}`;
+            }
+            
+            console.log('Sending request to API URL:', apiUrl);
 
             const response = await fetch(apiUrl, {
                 method: 'POST',

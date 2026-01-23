@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from mcp.server import Server
-from mcp.types import Tool
+from mcp.types import Tool, CallToolResult, TextContent
 
 # Configure logging
 logging.basicConfig(
@@ -137,8 +137,12 @@ async def list_tools() -> List[Tool]:
         
         tool = Tool(
             name=schema.get("name", tool_name),
+            title=schema.get("title", schema.get("name", tool_name)),
             description=schema.get("description", f"Tool: {tool_name}"),
-            inputSchema=schema.get("inputSchema", {})
+            inputSchema=schema.get("inputSchema", {}),
+            outputSchema=schema.get("outputSchema") or None,
+            annotations=schema.get("annotations", {}),
+            execution=schema.get("execution", {})
         )
         tools_list.append(tool)
     
@@ -147,7 +151,7 @@ async def list_tools() -> List[Tool]:
 
 
 @app.call_tool()
-async def call_tool(name: str, arguments: Dict[str, Any]) -> str:
+async def call_tool(name: str, arguments: Dict[str, Any]) -> CallToolResult:
     """Execute a tool by name"""
     
     if name not in loaded_tools:
@@ -167,7 +171,7 @@ async def call_tool(name: str, arguments: Dict[str, Any]) -> str:
             result = await result
         
         logger.info(f"Tool {name} returned: {result}")
-        return str(result)
+        return CallToolResult(content=[TextContent(type="text", text=str(result))])
     
     except TypeError as e:
         logger.error(f"Tool {name} argument error: {e}", exc_info=True)

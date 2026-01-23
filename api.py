@@ -61,7 +61,7 @@ async def chat(message: MessageRequest):
 
     # Forward request to LLM service
     host = config['llm']['host']
-    if host == "localhost":
+    if not host.startswith("http://") and not host.startswith("https://"):
         host = "http://" + host
     llm_service_url = host + ":" + str(config['llm']['port']) + config['llm']['endpoints']['chat']
 
@@ -93,7 +93,7 @@ if __name__ == "__main__":
     server_config = config['api']
     uvicorn.run(
         "api:app", 
-        host=server_config['host'], 
+        host='0.0.0.0',
         port=server_config['port'], 
         reload=True,
         log_level="info"

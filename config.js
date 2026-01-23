@@ -20,7 +20,9 @@ export async function loadConfig() {
         // Fallback configuration if backend is unavailable
         config = {
             api: {
-                baseUrl: process.env.REACT_APP_API_URL || 'http://localhost:8000',
+                    exposed_host: 'localhost',
+                    host: 'localhost',
+                    port: 8000,
                 endpoints: {
                     chat: '/chat',
                     health: '/health',
@@ -36,7 +38,9 @@ export function getConfig() {
         console.warn('Config not loaded yet, using defaults');
         return {
             api: {
-                baseUrl: process.env.REACT_APP_API_URL || 'http://localhost:8000',
+                    exposed_host: 'localhost',
+                    host: 'localhost',
+                    port: 8000,
                 endpoints: {
                     chat: '/chat',
                     health: '/health',
